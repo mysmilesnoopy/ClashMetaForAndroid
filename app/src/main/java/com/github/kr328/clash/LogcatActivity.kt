@@ -23,6 +23,7 @@ import com.github.kr328.clash.log.LogcatFilter
 import com.github.kr328.clash.log.LogcatReader
 import com.github.kr328.clash.util.logsDir
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
@@ -32,7 +33,8 @@ import kotlin.coroutines.suspendCoroutine
 import com.github.kr328.clash.design.R
 
 class LogcatActivity : BaseActivity<LogcatDesign>() {
-    private companion object {
+    companion object {
+        const val EXTRA_TAILSCALE_LOGIN = "tailscale_login"
         val TAILSCALE_LOGIN_URL = Regex("""https://login\.tailscale\.com/a/[A-Za-z0-9_-]+""")
     }
     private var conn: ServiceConnection? = null
@@ -106,6 +108,8 @@ class LogcatActivity : BaseActivity<LogcatDesign>() {
         val ticker = ticker(500)
 
         var initial = true
+        val loginRequested = intent.getBooleanExtra(EXTRA_TAILSCALE_LOGIN, false)
+        var attempted = false
         var tailscaleLoginUrl: String? = null
 
         while (isActive) {
@@ -144,6 +148,19 @@ class LogcatActivity : BaseActivity<LogcatDesign>() {
                         }
 
                         initial = false
+
+                        if (loginRequested && !attempted) {
+                            attempted = true
+                            // Trigger only explicitly named Tailscale groups; never test unrelated providers.
+                            val tailscaleGroups = com.github.kr328.clash.util.withClash {
+                                queryProxyGroupNames(false).filter { it.contains("tailscale", ignoreCase = true) }
+                            }
+                            tailscaleGroups.forEach { group ->
+                                kotlinx.coroutines.coroutineScope {
+                                    launch { com.github.kr328.clash.util.withClash { healthCheck(group) } }
+                                }
+                            }
+                        }
                     }
                 }
             }
