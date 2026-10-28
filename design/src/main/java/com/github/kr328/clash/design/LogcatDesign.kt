@@ -20,7 +20,7 @@ class LogcatDesign(
     private val streaming: Boolean,
 ) : Design<LogcatDesign.Request>(context) {
     enum class Request {
-        Close, Delete, Export
+        Close, Delete, Export, TailscaleLogin
     }
 
     private val binding = DesignLogcatBinding
@@ -48,6 +48,12 @@ class LogcatDesign(
         }
     }
 
+    suspend fun setTailscaleLoginAvailable(available: Boolean) {
+        withContext(Dispatchers.Main) {
+            binding.tailscaleLoginView.visibility = if (available && streaming) View.VISIBLE else View.GONE
+        }
+    }
+
     override val root: View
         get() = binding.root
 
@@ -56,6 +62,9 @@ class LogcatDesign(
         binding.streaming = streaming
 
         binding.activityBarLayout.applyFrom(context)
+        binding.tailscaleLoginView.setOnClickListener {
+            requests.trySend(Request.TailscaleLogin)
+        }
 
         binding.recyclerList.bindAppBarElevation(binding.activityBarLayout)
 
