@@ -1,6 +1,7 @@
 package com.github.kr328.clash
 
 import android.content.ComponentName
+import android.content.Intent
 import android.content.Context
 import android.content.ServiceConnection
 import android.net.Uri
@@ -31,6 +32,9 @@ import kotlin.coroutines.suspendCoroutine
 import com.github.kr328.clash.design.R
 
 class LogcatActivity : BaseActivity<LogcatDesign>() {
+    private companion object {
+        val TAILSCALE_LOGIN_URL = Regex("""https://login\.tailscale\.com/a/[A-Za-z0-9_-]+""")
+    }
     private var conn: ServiceConnection? = null
 
     override suspend fun main() {
@@ -102,6 +106,7 @@ class LogcatActivity : BaseActivity<LogcatDesign>() {
         val ticker = ticker(500)
 
         var initial = true
+        var tailscaleLoginUrl: String? = null
 
         while (isActive) {
             select<Unit> {
@@ -110,6 +115,11 @@ class LogcatActivity : BaseActivity<LogcatDesign>() {
                 }
                 design.requests.onReceive {
                     when (it) {
+                        LogcatDesign.Request.TailscaleLogin -> {
+                            tailscaleLoginUrl?.let { url ->
+                                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                            }
+                        }
                         LogcatDesign.Request.Close -> {
                             stopService(LogcatService::class.intent)
                             startActivity(LogsActivity::class.intent)
@@ -123,6 +133,15 @@ class LogcatActivity : BaseActivity<LogcatDesign>() {
                         val snapshot = logcat.snapshot(initial) ?: return@onReceive
 
                         design.patchMessages(snapshot.messages, snapshot.removed, snapshot.appended)
+
+                        // Only expose a validated official Tailscale authentication URL.
+                        val candidate = snapshot.messages.asReversed().firstNotNullOfOrNull { message ->
+                            TAILSCALE_LOGIN_URL.find(message.message)?.value
+                        }
+                        if (candidate != null) {
+                            tailscaleLoginUrl = candidate
+                            design.setTailscaleLoginAvailable(true)
+                        }
 
                         initial = false
                     }
