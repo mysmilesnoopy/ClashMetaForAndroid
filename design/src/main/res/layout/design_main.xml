@@ -120,6 +120,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="@dimen/main_label_margin_vertical"
+                    android:visibility="@{clashRunning ? View.VISIBLE : View.GONE}"
+                    android:onClick="@{() -> self.request(Request.OpenTailscaleLogin)}"
+                    app:icon="@drawable/ic_baseline_apps"
+                    app:text="@string/tailscale_login_title" />
+
+                <com.github.kr328.clash.design.view.LargeActionLabel
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="@dimen/main_label_margin_vertical"
                     android:onClick="@{() -> self.request(Request.OpenLogs)}"
                     app:icon="@drawable/ic_baseline_assignment"
                     app:text="@string/logs" />

@@ -64,6 +64,8 @@ class MainActivity : BaseActivity<MainDesign>() {
                             startActivity(ProfilesActivity::class.intent)
                         MainDesign.Request.OpenProviders ->
                             startActivity(ProvidersActivity::class.intent)
+                        MainDesign.Request.OpenTailscaleLogin ->
+                            startActivity(LogcatActivity::class.intent.putExtra(LogcatActivity.EXTRA_TAILSCALE_LOGIN, true))
                         MainDesign.Request.OpenLogs -> {
                             if (LogcatService.running) {
                                 startActivity(LogcatActivity::class.intent)
