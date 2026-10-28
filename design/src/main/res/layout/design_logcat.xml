@@ -44,12 +44,26 @@
                     android:layout_centerVertical="true"
                     android:layout_toStartOf="@id/action_layout" />
 
-                <FrameLayout
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:id="@+id/action_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true">
+
+                    <TextView
+                        android:id="@+id/tailscale_login_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:padding="8dp"
+                        android:visibility="gone"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?selectableItemBackgroundBorderless"
+                        android:text="Login Tailscale" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -94,7 +108,7 @@
                         android:padding="@dimen/toolbar_image_action_padding"
                         android:src="@drawable/ic_baseline_stop"
                         android:visibility="@{streaming ? View.VISIBLE : View.GONE}" />
-                </FrameLayout>
+                </LinearLayout>
 
             </RelativeLayout>
         </com.github.kr328.clash.design.view.ActivityBarLayout>
